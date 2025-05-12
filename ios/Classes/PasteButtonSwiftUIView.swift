@@ -9,41 +9,33 @@ import SwiftUI
 
 struct PasteButtonSwiftUIView: View {
     @State var buttonID: String = ""
-    var method:(String?) -> Void
-    var color:Color
-    var hasLabel:Bool = false
-    var width:Double
-    var height:Double
-    init(seed:[String: Any] ,bodyColor:Color, method:@escaping(String?) -> Void) {
+    var method: (String?) -> Void
+    var color: Color
+    var width: Double
+    var height: Double
+    
+    init(seed: [String: Any], bodyColor: Color, method: @escaping (String?) -> Void) {
         buttonID = UUID().uuidString
         self.method = method
         self.color = bodyColor
-        self.hasLabel = seed["hasLabel"] as! Bool
-        self.width = seed["width"] as! Double
-        self.height = seed["height"] as! Double
+        self.width = seed["width"] as? Double ?? 40.0
+        self.height = seed["height"] as? Double ?? 40.0
     }
     
     var body: some View {
-        PasteButton(payloadType: String.self){strings in
-            method(strings[0])
+        Button(action: {
+            if let string = UIPasteboard.general.string {
+                method(string)
+            }
+        }) {
+            Image(systemName: "doc.on.clipboard")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 24, height: 24)
+                .foregroundColor(color)
         }
-        .labelStyle(includingText: hasLabel).tint(self.color)
-        .id(buttonID)
-        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
-            self.buttonID = UUID().uuidString
-        }
-        .frame(width: self.width, height: self.height)
-        .edgesIgnoringSafeArea(.all) 
-    }
-}
-
-extension View {
-    @ViewBuilder
-    func labelStyle(includingText: Bool) -> some View {
-        if includingText {
-            self.labelStyle(.titleAndIcon)
-        } else {
-            self.labelStyle(.iconOnly)
-        }
+        .frame(width: width, height: height)
+        .background(Color.clear) 
+        .cornerRadius(8)
     }
 }
